@@ -7,38 +7,62 @@ Update this comment to describe the final implementation once completed.
 
 import random
 from WordleDictionary import FIVE_LETTER_WORDS
-from WordleGraphics import WordleGWindow, N_COLS, N_ROWS
+from WordleGraphics import WordleGWindow, N_COLS, N_ROWS, CORRECT_COLOR, PRESENT_COLOR, MISSING_COLOR, UNKNOWN_COLOR
 
 
 def wordle():
-    # create a WordleGWindow instance
-    gw = WordleGWindow()
 
-    # pick a random word from the list of five-letter words
-    solution_word = random.choice(FIVE_LETTER_WORDS).upper()
-
-    # this function will be called when the user hits ENTER
     def enter_action(s):
-        # convert the entered word to uppercase for comparison
-        entered_word = s.lower()
+        def compare_guess(target, guess):
+            nonlocal current_row
 
-        # check if the entered word is in the list of five-letter words
-        if entered_word in FIVE_LETTER_WORDS:
-            # for now, just show a positive message (this will be updated in later milestones)
-            gw.show_message("That's a valid word!")
+            for i in range(0, 5):
+                if target[i] == guess[i]:
+                    gw.set_square_color(current_row, i, CORRECT_COLOR)
+                    gw.set_key_color(guess[i], CORRECT_COLOR)
+                elif guess[i] in target:
+                    if target.count(guess[i]) > guess[:i].count(guess[i]):
+                        gw.set_square_color(current_row, i, PRESENT_COLOR)
+                        if gw.get_key_color(guess[i]) != CORRECT_COLOR:
+                            gw.set_key_color(guess[i], PRESENT_COLOR)
+                    else:
+                        gw.set_square_color(current_row, i, MISSING_COLOR)
+                        gw.set_key_color(guess[i], MISSING_COLOR)
+                else:
+                    gw.set_square_color(current_row, i, MISSING_COLOR)
+                    gw.set_key_color(guess[i], MISSING_COLOR)
+
+            if target == guess:
+                gw.show_message("Correct!")
+            else:
+                gw.show_message("Incorrect! Try again")
+                current_row += 1
+                gw.set_current_row(current_row)
+
+        l1 = gw.get_square_letter(current_row, N_COLS - 5)
+        l2 = gw.get_square_letter(current_row, N_COLS - 4)
+        l3 = gw.get_square_letter(current_row, N_COLS - 3)
+        l4 = gw.get_square_letter(current_row, N_COLS - 2)
+        l5 = gw.get_square_letter(current_row, N_COLS - 1)
+        user_word = (l1 + l2 + l3 + l4 + l5)
+        user_array = list(user_word)
+
+        if user_word.lower() in FIVE_LETTER_WORDS:
+            compare_guess(rand_array, user_array)
         else:
-            # show a message that the word is not in the list
             gw.show_message("Not in word list")
 
-    # add the enter listener (enter_action)
-    gw.add_enter_listener(enter_action)
+    random_word = random.choice(FIVE_LETTER_WORDS)
+    rand_array = list(random_word.upper())
 
-    # Note: The following code is commented out as it was only needed for Milestone #1
-    # Displaying the solution word is not needed for Milestone #2 or actual gameplay
-    # for col in range(N_COLS):
-    #     gw.set_square_letter(0, col, solution_word[col])
+    print("Random word:", random_word)
+
+    current_row = 0
+    gw = WordleGWindow()
+    gw.add_enter_listener(enter_action)
 
 
 # Startup code
+
 if __name__ == "__main__":
     wordle()
